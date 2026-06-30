@@ -133,7 +133,8 @@ G4DarkBreMModel::G4DarkBreMModel(const std::string &library_path, bool muons,
                                  ScalingMethod scaling_method,
                                  XsecMethod xsec_method, double max_R_for_full,
                                  int aprime_lhe_id, bool load_library,
-                                 bool scale_APrime, double dist_decay_min,
+                                 bool scale_APrime, bool correct_forward, 
+                                 double dist_decay_min,
                                  double dist_decay_max, int decay_particle_id)
     : PrototypeModel(muons),
       maxIterations_{10000},
@@ -145,6 +146,7 @@ G4DarkBreMModel::G4DarkBreMModel(const std::string &library_path, bool muons,
       xsec_method_{xsec_method},
       library_path_{library_path},
       scale_APrime_{scale_APrime},
+      correct_forward_{correct_forward},
       dist_decay_min_{dist_decay_min},
       dist_decay_max_{dist_decay_max},
       decay_particle_id_{decay_particle_id} {
@@ -497,6 +499,22 @@ std::pair<G4ThreeVector, G4ThreeVector> G4DarkBreMModel::scale(
   recoil.set(std::sin(ThetaAcc) * std::cos(PhiAcc),
              std::sin(ThetaAcc) * std::sin(PhiAcc), std::cos(ThetaAcc));
   recoil.setMag(recoilMag);
+
+  if (scaling_method_ == ScalingMethod::ForwardOnly && correct_forward_) {
+    double X = recoil.z() / recoil.mag();
+    const float beta = 1.155;
+    const float gamma = 1.630;
+    double prob = 0.5 * std::pow((1 - X), beta) * std::exp(-std::pow(X, gamma));
+    std::random_device rd;
+    std::mt19937 gen(rd()); 
+    std::uniform_real_distribution<> dis(0, 1.0);
+    double num = dis(gen);
+    bool backward = (prob > num);
+
+    if (backward) {
+      recoil.set(recoil.x(), recoil.y(), -recoil.z());
+    }
+  }
 
   // outgoing A' momentum
   G4ThreeVector aprime;

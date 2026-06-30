@@ -1,4 +1,7 @@
 build
 install
 *.root
-
+analysis
+.bash*
+.profile
+.denv/

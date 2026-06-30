@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <random>
 
 #include "G4DarkBreM/ParseLibrary.h"
 #include "G4DarkBreM/PrototypeModel.h"
@@ -241,7 +242,7 @@ class G4DarkBreMModel : public PrototypeModel {
                   ScalingMethod sm = ScalingMethod::ForwardOnly,
                   XsecMethod xm = XsecMethod::Auto,
                   double max_R_for_full = 50.0, int aprime_lhe_id = 622,
-                  bool load_library = true, bool scale_APrime = false,
+                  bool load_library = true, bool scale_APrime = false, bool correct_forward = false,
                   double dist_decay_min = 0.0, double dist_decay_max = 1.0, 
                   int decay_particle_id = 11);
 
@@ -459,6 +460,14 @@ class G4DarkBreMModel : public PrototypeModel {
    * deciding where the decay occurs is very important).
    */
   bool scale_APrime_{false};
+
+  /**
+   * Whether to correct the outgoing (recoil) lepton momentum to include backward events.
+   * Backscatter probability as a function of X = |p_z|/P determined by fited function:
+   * probability = 0.5 * std::pow((1 - X), beta) * std::exp(-std::pow(X, gamma)) 
+   */
+
+  bool correct_forward_{false};
 
   /**
    * Minimum flight distance [mm] at which to decay the A'

@@ -146,7 +146,8 @@ int main(int argc, char* argv[]) try {
       50.0,  // max_R_for_full
       622,   // aprime_lhe_id
       true,  // load_library
-      scale_APrime);
+      scale_APrime,
+      true); // correct forward 
   db_model.PrintInfo();
   printf("   %-16s %f\n", "Lepton Mass [MeV]:", lepton_mass * GeV / MeV);
   printf("   %-16s %f\n", "A' Mass [MeV]:", ap_mass / MeV);
