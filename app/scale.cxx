@@ -50,9 +50,11 @@ void usage() {
          "  -Z,--target-Z         : atomic Z of target nucleus to scale to\n"
          "  -N,--num-events       : number of events to sample and scale\n"
          "  -M,--ap-mass          : mass of dark photon in MeV\n"
+         "  -l,--aprime-id        : A prime lhe id\n"
          "  --muons               : pass to set lepton to muons (otherwise "
          "electrons)\n"
          "  --scale-APrime        : pass to scale the APrime kinematics\n"
+         "  --correct-forward     : pass to approximately restore backscattering\n"
       << std::flush;
 }
 
@@ -71,8 +73,10 @@ int main(int argc, char* argv[]) try {
   int num_events{10};
   std::string db_lib;
   double ap_mass{0.1};
+  int aprime_id{1023};
   bool muons{false};
   bool scale_APrime{false};
+  bool correct_forward{false};
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
     if (arg == "-h" or arg == "--help") {
@@ -104,6 +108,12 @@ int main(int argc, char* argv[]) try {
         return 1;
       }
       ap_mass = std::stod(argv[++i_arg]);
+    } else if (arg == "-l" or arg == "--aprime-id") {
+      if (i_arg + 1 >= argc) {
+        std::cerr << arg << " requires an argument after it" << std::endl;
+        return 1;
+      }
+      aprime_id = std::stod(argv[++i_arg]);
     } else if (arg == "-N" or arg == "--num-events") {
       if (i_arg + 1 >= argc) {
         std::cerr << arg << " requires an argument after it" << std::endl;
@@ -112,6 +122,8 @@ int main(int argc, char* argv[]) try {
       num_events = std::stoi(argv[++i_arg]);
     } else if (arg == "--scale-APrime") {
       scale_APrime = true;
+    } else if (arg == "--correct-forward") {
+      correct_forward = true;
     } else if (not arg.empty() and arg[0] == '-') {
       std::cerr << arg << " is not a recognized option" << std::endl;
       return 1;
@@ -144,10 +156,10 @@ int main(int argc, char* argv[]) try {
       g4db::G4DarkBreMModel::ScalingMethod::ForwardOnly,
       g4db::G4DarkBreMModel::XsecMethod::Auto,
       50.0,  // max_R_for_full
-      622,   // aprime_lhe_id
+      aprime_id,   // aprime_lhe_id
       true,  // load_library
       scale_APrime,
-      true); // correct forward 
+      correct_forward); 
   db_model.PrintInfo();
   printf("   %-16s %f\n", "Lepton Mass [MeV]:", lepton_mass * GeV / MeV);
   printf("   %-16s %f\n", "A' Mass [MeV]:", ap_mass / MeV);
