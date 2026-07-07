@@ -3,7 +3,6 @@
 
 #include <map>
 #include <memory>
-#include <random>
 
 #include "G4DarkBreM/ParseLibrary.h"
 #include "G4DarkBreM/PrototypeModel.h"
@@ -241,7 +240,7 @@ class G4DarkBreMModel : public PrototypeModel {
                   double threshold = 0.0, double epsilon = 1.0,
                   ScalingMethod sm = ScalingMethod::ForwardOnly,
                   XsecMethod xm = XsecMethod::Auto,
-                  double max_R_for_full = 50.0, int aprime_lhe_id = 622,
+                  double max_R_for_full = 50.0, int aprime_lhe_id = 1023,
                   bool load_library = true, bool scale_APrime = false, bool correct_forward = false,
                   double dist_decay_min = 0.0, double dist_decay_max = 1.0, 
                   int decay_particle_id = 11);
@@ -462,9 +461,14 @@ class G4DarkBreMModel : public PrototypeModel {
   bool scale_APrime_{false};
 
   /**
-   * Whether to correct the outgoing (recoil) lepton momentum to include backward events.
-   * Backscatter probability as a function of X = |p_z|/P determined by fited function:
+   * Whether to correct the outgoing (recoil) lepton momenta to include backward-scattered leptons.
+   * Backscatter conditional probability as a function of X = |p_z|/P (abs z-momentum over magnitude of 3-momentum)
+   * is modelled by the two-parameter fit function:
    * probability = 0.5 * std::pow((1 - X), beta) * std::exp(-std::pow(X, gamma)) 
+   * We fit to 8 different Madgraph samples (2e6 events each) at evenly spaced energies between 1 GeV and 8 GeV 
+   * and use the median fit with parameter values beta = 1.155 and gamma = 1.630.
+   * For each event, we sample from a uniform distribution within [0,1) and flip the sign of p_z
+   * whenever the randomly generated number is less than "probability" evaluated at |p_z|/P.
    */
 
   bool correct_forward_{false};

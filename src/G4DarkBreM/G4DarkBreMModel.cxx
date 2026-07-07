@@ -500,15 +500,14 @@ std::pair<G4ThreeVector, G4ThreeVector> G4DarkBreMModel::scale(
              std::sin(ThetaAcc) * std::sin(PhiAcc), std::cos(ThetaAcc));
   recoil.setMag(recoilMag);
 
+  // Apply correction to Forward Only scaling to approximate backward-scattered electrons
+  // only if correct_forward is passed to the db model
   if (scaling_method_ == ScalingMethod::ForwardOnly && correct_forward_) {
     double X = recoil.z() / recoil.mag();
     const float beta = 1.155;
     const float gamma = 1.630;
     double prob = 0.5 * std::pow((1 - X), beta) * std::exp(-std::pow(X, gamma));
-    std::random_device rd;
-    std::mt19937 gen(rd()); 
-    std::uniform_real_distribution<> dis(0, 1.0);
-    double num = dis(gen);
+    double num = G4UniformRand();
     bool backward = (prob > num);
 
     if (backward) {
